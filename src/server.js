@@ -7,7 +7,7 @@ app.use(express.json())
 app.use("/posts", postRouter)
 
 const HOST = 'localhost'
-const PORT = 3005
+const PORT = 3000
 
 app.listen(PORT, HOST, () => {
     console.log(`Server: http://${HOST}:${PORT}`)
