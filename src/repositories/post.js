@@ -23,7 +23,7 @@ const posts = [
 
 
 function getAll(category, take) {
-  let result = posts
+  let result = [...posts]
 
   if (category) {
     result = result.filter((post) => post.category == category)
