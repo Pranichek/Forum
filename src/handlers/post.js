@@ -41,14 +41,19 @@ async function createPost(req, res) {
         return res.status(422).json({ message: "title та content обов'язкові" })
     }
 
-    const newPost = await postService.createPost(
-        { 
-            title, 
-            content, 
-            author, 
-            category 
-        }
-    )
+    try {
+        const newPost = await postService.createPost(
+            { 
+                title, 
+                content, 
+                author, 
+                category 
+            }
+        )
+    } catch (error) {
+        console.log(error)
+    }
+
 
     res.status(201).json(newPost)
 }
