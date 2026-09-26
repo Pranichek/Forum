@@ -1,4 +1,12 @@
-const posts = [
+export interface Post {
+  id: number
+  title: string
+  content: string
+  author?: string | undefined
+  category?: string | undefined
+}
+
+const posts: Post[] = [
     { 
         id: 1, title: "Перший пост", 
         content: "Привіт", 
@@ -22,7 +30,8 @@ const posts = [
 ]
 
 
-function getAll(category, take) {
+
+function getAll(category: string | undefined, take: number | undefined): Post[] {
   let result = [...posts]
 
   if (category) {
@@ -36,11 +45,12 @@ function getAll(category, take) {
   return result
 }
 
-function getById(id) {
+
+function getById(id: number): Post | undefined {
   return posts.find((post) => post.id === id)
 }
 
-function addPost(data) {
+function addPost(data: { title: string, content: string, author?: string | undefined, category?: string | undefined }): Promise<Post> {
     return new Promise((resolve) => {
         const lastPost = posts[posts.length - 1]
 
