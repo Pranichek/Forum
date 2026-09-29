@@ -1,11 +1,12 @@
 import { Router } from "express"
-import postHandler from "../handlers/post.js"
+import type { createPostHandlers } from "../handlers/post"
 
-const router = Router()
+export function createPostRouter(handlers: ReturnType<typeof createPostHandlers>) {
+    const router = Router()
 
-router.get("/", postHandler.getPosts)    
-router.get("/:id", postHandler.getPost)  
-router.post("/", postHandler.createPost) 
+    router.get("/", handlers.getPosts)
+    router.get("/:id", handlers.getPost)
+    router.post("/", handlers.createPost)
 
-
-export default router
+    return router
+}
