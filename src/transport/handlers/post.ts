@@ -6,20 +6,9 @@ import type { PostService } from '../../services/post/post.types'
 import type { Post } from '../../domain/post/entity'
 
 export interface PostHandlers {
-    getPosts(
-        req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>,
-        res: Response<PostResponse[] | ErrorDto>
-    ): void
-
-    getPost(
-        req: Request<PostParams>,
-        res: Response<PostResponse | ErrorDto>
-    ): void
-
-    createPost(
-        req: Request<{}, PostResponse | ErrorDto, CreatePost>,
-        res: Response<PostResponse | ErrorDto>
-    ): Promise<void>
+    getPosts(req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>, res: Response<PostResponse[] | ErrorDto>): void
+    getPost(req: Request<PostParams>, res: Response<PostResponse | ErrorDto>): void
+    createPost(req: Request<{}, PostResponse | ErrorDto, CreatePost>,res: Response<PostResponse | ErrorDto>): Promise<void>
 }
 
 export function createPostHandlers(postService: PostService): PostHandlers {
