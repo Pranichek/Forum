@@ -3,10 +3,28 @@ import type { GetPosts, PostParams, CreatePost } from "../dto/post/requests"
 import type { PostResponse } from "../dto/post/responses"
 import type { ErrorDto } from "../dto/post/errors"
 import type { PostService } from '../../services/post/post.types'
+import type { Post } from '../../domain/post/entity'
 
-export function createPostHandlers(postService: PostService) {
+export interface PostHandlers {
+    getPosts(
+        req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>,
+        res: Response<PostResponse[] | ErrorDto>
+    ): void
+
+    getPost(
+        req: Request<PostParams>,
+        res: Response<PostResponse | ErrorDto>
+    ): void
+
+    createPost(
+        req: Request<{}, PostResponse | ErrorDto, CreatePost>,
+        res: Response<PostResponse | ErrorDto>
+    ): Promise<void>
+}
+
+export function createPostHandlers(postService: PostService): PostHandlers {
     return {
-        getPosts(req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>, res: Response<PostResponse[] | ErrorDto>) {
+        getPosts(req, res) {
             const { category, take } = req.query
 
             let takeNumber: number | undefined
@@ -22,7 +40,7 @@ export function createPostHandlers(postService: PostService) {
             res.status(200).json(posts)
         },
 
-        getPost(req: Request<PostParams>, res: Response<PostResponse | ErrorDto>) {
+        getPost(req, res) {
             const id : number = Number(req.params.id)
 
             if (!Number.isInteger(id) || id <= 0) {
@@ -39,12 +57,13 @@ export function createPostHandlers(postService: PostService) {
             res.status(200).json(post)
         },
 
-        async createPost(req: Request<{}, PostResponse | ErrorDto, CreatePost>, res: Response<PostResponse | ErrorDto>) {
+        async createPost(req, res) {
             const { title, content, author, category } = req.body
 
 
             if (!title || !content) {
-                return res.status(422).json({ message: "title та content обов'язкові" })
+                res.status(422).json({ message: "title та content обов'язкові" })
+                return
             }
 
 
