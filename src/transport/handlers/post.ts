@@ -3,7 +3,6 @@ import type { GetPosts, PostParams, CreatePost } from "../dto/post/requests"
 import type { PostResponse } from "../dto/post/responses"
 import type { ErrorDto } from "../dto/post/errors"
 import type { PostService } from '../../services/post/post.types'
-import type { Post } from '../../domain/post/entity'
 
 export interface PostHandlers {
     getPosts(req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>, res: Response<PostResponse[] | ErrorDto>): void
