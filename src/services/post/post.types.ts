@@ -9,8 +9,6 @@ interface CreatePostInput {
 
 export interface PostService {
     getPosts(category: string | undefined, take: number | undefined): Post[]
-
     getPost(id: number): Post | undefined
-
     createPost(data: CreatePostInput ): Promise<Post>
 }
