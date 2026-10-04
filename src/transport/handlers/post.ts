@@ -5,41 +5,42 @@ import type { ErrorDto } from "../dto/post/errors"
 import type { PostService } from '../../services/post/post.types'
 
 export interface PostHandlers {
-    getPosts(req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>, res: Response<PostResponse[] | ErrorDto>): void
-    getPost(req: Request<PostParams>, res: Response<PostResponse | ErrorDto>): void
+    getPosts(req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>, res: Response<PostResponse[] | ErrorDto>): Promise<void>
+    getPost(req: Request<PostParams>, res: Response<PostResponse | ErrorDto>): Promise<void>
     createPost(req: Request<{}, PostResponse | ErrorDto, CreatePost>,res: Response<PostResponse | ErrorDto>): Promise<void>
 }
 
 export function createPostHandlers(postService: PostService): PostHandlers {
     return {
-        getPosts(req, res) {
+        async getPosts(req, res) {
             const { category, take } = req.query
 
             let takeNumber: number | undefined
             if (take) {
                 takeNumber = Number(take)
                 if (!Number.isInteger(takeNumber) || takeNumber <= 0) {
-                    return res.status(422).json({ message: "take повинене бути додатнім числом" })
+                    res.status(422).json({ message: "take повинене бути додатнім числом" })
+                    return
                 }
             }
 
-            const posts = postService.getPosts(category, takeNumber)
+            const posts = await postService.getPosts(category, takeNumber)
 
             res.status(200).json(posts)
         },
 
-        getPost(req, res) {
+        async getPost(req, res) {
             const id : number = Number(req.params.id)
 
             if (!Number.isInteger(id) || id <= 0) {
-                return res.status(422).json({ message: "id повино бути додатнім числом" })
+                res.status(422).json({ message: "id повино бути додатнім числом" })
+                return
             }
 
-            const post = postService.getPost(id)
+            const post = await postService.getPost(id)
             if (!post) {
-                return res.status(404).json(
-                    { message: "пост не знайдено" }
-                )
+                res.status(404).json({ message: "пост не знайдено" })
+                return
             }
 
             res.status(200).json(post)

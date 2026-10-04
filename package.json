@@ -5,18 +5,28 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "contract:emit": "prisma contract emit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@prisma/orm-postgres": "^8.0.0-rc.14",
     "@types/express": "^5.0.6",
+    "dotenv": "^18.0.5",
     "express": "^5.2.1",
     "typescript": "^7.0.2"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
+    "prisma": "^8.0.0-rc.14",
     "tsx": "^4.23.15"
+  },
+  "overrides": {
+    "prisma": {
+      "@prisma/orm-toolchain": "8.0.0-rc.14"
+    }
   }
 }

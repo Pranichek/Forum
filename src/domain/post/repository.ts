@@ -1,12 +1,12 @@
 import type { Post } from "./entity"
 
 export interface PostRepository {
-  getAll(category: string | undefined, take: number | undefined): Post[]
-  getById(id: number): Post | undefined
+  getAll(category: string | null | undefined, take: number | null | undefined): Promise<Post[]>
+  getById(id: number): Promise<Post | null>
   addPost(data: {
     title: string
     content: string
-    author?: string | undefined
-    category?: string | undefined
+    author?: string | null | undefined
+    category?: string | null | undefined
   }): Promise<Post>
 }
