@@ -1,7 +1,7 @@
 import { Router } from "express"
-import type { createPostHandlers } from "../handlers/post"
+import type { PostHandlers } from "../handlers/post"
 
-export function createPostRouter(handlers: ReturnType<typeof createPostHandlers>) {
+export function createPostRouter(handlers: PostHandlers) {
     const router = Router()
 
     router.get("/", handlers.getPosts)

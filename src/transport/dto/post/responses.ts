@@ -2,6 +2,6 @@ export interface PostResponse {
   id: number
   title: string
   content: string
-  author?: string | undefined
-  category?: string | undefined
+  author?: string | null    
+  category?: string | null  
 }
