@@ -8,8 +8,8 @@ export interface PostParams {
 }
 
 export interface CreatePost {
-  title: string;
-  content: string;
-  author?: string;
-  category?: string;
+    title: string
+    content: string
+    author?: string
+    categoryId: number   
 }

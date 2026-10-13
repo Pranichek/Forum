@@ -1,12 +1,7 @@
-import type { Post } from "./entity"
+import type { Post, PostWithCategory, CreatePostData } from "./entity"
 
 export interface PostRepository {
-  getAll(category: string | null | undefined, take: number | null | undefined): Promise<Post[]>
-  getById(id: number): Promise<Post | null>
-  addPost(data: {
-    title: string
-    content: string
-    author?: string | null | undefined
-    category?: string | null | undefined
-  }): Promise<Post>
+    getAll(category: string | undefined, take: number | undefined): Promise<PostWithCategory[]>
+    getById(id: number): Promise<PostWithCategory | null>
+    addPost(data: CreatePostData): Promise<Post>
 }
