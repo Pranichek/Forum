@@ -1,0 +1,11 @@
+import { Router } from "express"
+import type { UserHandlers } from "../handlers/user"
+
+
+export function createUserRouter(handlers: UserHandlers) {
+    const router = Router()
+
+    router.post("/register", handlers.register)
+
+    return router
+}
