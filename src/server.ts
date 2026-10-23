@@ -7,6 +7,11 @@ import { createCategoryRepository } from "./repositories/category"
 import { createCategoryService } from "./services/category/category"
 import { createCategoryHandlers } from "./transport/handlers/category"
 import { createCategoryRouter } from "./transport/routers/category"
+import { hashPassword, checkPassword } from "./lib/password"
+import { createUserRepository } from "./repositories/user"
+import { createUserService } from "./services/user/user"
+import { createUserHandlers } from "./transport/handlers/user"
+import { createUserRouter } from "./transport/routers/user"
 import { db } from "./prisma/db"
 
 
@@ -15,6 +20,7 @@ app.use(express.json())
 
 const postRepository = createPostRepository(db)
 const categoryRepository = createCategoryRepository(db)
+const userRepository = createUserRepository(db)
 
 const postService = createPostService(postRepository, categoryRepository)
 const postHandlers = createPostHandlers(postService)
@@ -23,9 +29,13 @@ const postRouter = createPostRouter(postHandlers)
 const categoryService = createCategoryService(categoryRepository)
 const categoryHandlers = createCategoryHandlers(categoryService)
 const categoryRouter = createCategoryRouter(categoryHandlers)
+const userService = createUserService(userRepository, { hashPassword, checkPassword })
+const userHandlers = createUserHandlers(userService)
+const userRouter = createUserRouter(userHandlers)
 
 app.use("/posts", postRouter)
 app.use("/categories", categoryRouter)
+app.use("/auth", userRouter)
 
 const HOST = "localhost"
 const PORT = 3000
