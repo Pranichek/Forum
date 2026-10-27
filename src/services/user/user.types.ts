@@ -1,15 +1,25 @@
 import type { PublicUser } from "../../domain/user/entity"
 
-export interface UserInput {
+export interface AuthInput {
     email: string
-    password: string    
+    password: string
 }
 
 export interface PasswordHasher {
-    hashPassword(password: string): Promise<string>
-    checkPassword(hash: string, password: string): Promise<boolean>
+    hash(password: string): Promise<string>
+    verify(hash: string, password: string): Promise<boolean>
 }
 
-export interface UserService {
-    register(input: UserInput): Promise<PublicUser>
+export interface TokenService {
+    signAccessToken(userId: number): string
+}
+
+export interface AuthService {
+    register(input: AuthInput): Promise<PublicUser>
+    login(input: AuthInput): Promise<{
+        user: PublicUser
+        tokens: {
+            access: string
+        }
+    }>
 }

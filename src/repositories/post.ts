@@ -6,7 +6,9 @@ import type { PostRepository } from "../domain/post/repository"
 export function createPostRepository(db: PostgresClient<Contract>): PostRepository {
     return {
         async getAll(category, take) {
-            let query = db.orm.public.Post.include("category")
+            let query = db.orm.public.Post
+                .include("category")
+                .include("author", (author) => author.select("id", "email"))
 
 
             if (category) {
@@ -21,17 +23,22 @@ export function createPostRepository(db: PostgresClient<Contract>): PostReposito
         },
 
         async getById(id) {
-            return await db.orm.public.Post.include("category").where({ id: id }).first()
+            return await db.orm.public.Post
+                .include("category")
+                .include("author", (author) => author.select("id", "email"))
+                .where({ id: id })
+                .first()
         },
 
         async addPost(data) {
             const categoryId = data.categoryId
+            const authorId = data.authorId
 
             return await db.orm.public.Post.create({
                 title: data.title,
                 content: data.content,
-                author: data.author ?? null,  
                 category: (category) => category.connect({ id: categoryId }),
+                author: (author) => author.connect({ id: authorId }),
             })
         },
     }

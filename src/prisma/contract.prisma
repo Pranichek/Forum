@@ -1,12 +1,13 @@
 // use prisma-8
 
 model Post {
-  id       Int     @id @default(autoincrement())
-  title    String
-  content  String
-  author   String?
+  id         Int       @id @default(autoincrement())
+  title      String
+  content    String
   categoryId Int?
-  category Category? @relation(fields: [categoryId], references: [id])
+  category   Category? @relation(fields: [categoryId], references: [id])
+  authorId   Int?
+  author     User?     @relation(fields: [authorId], references: [id])
 }
 
 model Category {
@@ -18,5 +19,6 @@ model Category {
 model User {
   id           Int    @id @default(autoincrement()) 
   email        String @unique                       
-  hashPassword String                                
+  hashPassword String                  
+  posts        Post[]              
 }

@@ -10,6 +10,6 @@ export interface PostParams {
 export interface CreatePost {
     title: string
     content: string
-    author?: string
-    categoryId: number   
+    categoryId: number
+    authorId: number
 }
