@@ -6,6 +6,7 @@ export function createUserRouter(handlers: UserHandlers) {
     const router = Router()
 
     router.post("/register", handlers.register)
+    router.post("/login", handlers.login)
 
     return router
 }

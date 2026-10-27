@@ -47,10 +47,15 @@ export function createPostHandlers(postService: PostService): PostHandlers {
         },
 
         async createPost(req, res) {
-            const { title, content, author, categoryId } = req.body
+            const { title, content, categoryId, authorId } = req.body
 
             if (typeof categoryId !== "number" || !Number.isInteger(categoryId) || categoryId <= 0) {
                 res.status(400).json({ message: "categoryId повинен бути додатнім цілим числом" })
+                return
+            }
+
+            if (typeof authorId !== "number" || !Number.isInteger(authorId) || authorId <= 0) {
+                res.status(400).json({ message: "authorId повинен бути додатнім цілим числом" })
                 return
             }
 
@@ -60,7 +65,7 @@ export function createPostHandlers(postService: PostService): PostHandlers {
             }
 
             try {
-                const newPost = await postService.createPost({ title, content, author, categoryId })
+                const newPost = await postService.createPost({ title, content, categoryId, authorId })
 
                 if (!newPost) {
                     res.status(404).json({ message: "Категорію з таким categoryId не знайдено" })

@@ -1,20 +1,34 @@
 import type { UserRepository } from "../../domain/user/repository"
-import type { PasswordHasher, UserService } from "./user.types"
+import type { AuthService, PasswordHasher, TokenService } from "./user.types"
 
 
-export function createUserService(repository: UserRepository, passwordHasher: PasswordHasher): UserService {
+export function createAuthService(
+    repository: UserRepository,
+    passwordHasher: PasswordHasher,
+    tokenService: TokenService
+): AuthService {
     return {
         async register(input) {
-            const hashPassword = await passwordHasher.hashPassword(input.password)
+            const email = input.email.trim().toLowerCase()
+            const passwordHash = await passwordHasher.hash(input.password)
+            const user = await repository.createUser({ email, hashPassword: passwordHash })
 
-            const newUser = await repository.createUser({
-                email: input.email,
-                hashPassword: hashPassword,
-            })
+            return { id: user.id, email: user.email }
+        },
+
+        async login(input) {
+            const email = input.email.trim().toLowerCase()
+            const user = await repository.getUserByEmail(email)
+
+            if (!user || !await passwordHasher.verify(user.hashPassword, input.password)) {
+                throw new Error("INVALID_CREDENTIALS")
+            }
 
             return {
-                id: newUser.id,
-                email: newUser.email,
+                user: { id: user.id, email: user.email },
+                tokens: {
+                    access: tokenService.signAccessToken(user.id)
+                },
             }
         },
     }

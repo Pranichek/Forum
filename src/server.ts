@@ -9,11 +9,11 @@ import { createCategoryHandlers } from "./transport/handlers/category"
 import { createCategoryRouter } from "./transport/routers/category"
 import { hashPassword, checkPassword } from "./lib/password"
 import { createUserRepository } from "./repositories/user"
-import { createUserService } from "./services/user/user"
+import { createAuthService } from "./services/user/user"
 import { createUserHandlers } from "./transport/handlers/user"
 import { createUserRouter } from "./transport/routers/user"
 import { db } from "./prisma/db"
-
+import { signAccessToken } from "./lib/token"
 
 const app = express()
 app.use(express.json())
@@ -29,8 +29,12 @@ const postRouter = createPostRouter(postHandlers)
 const categoryService = createCategoryService(categoryRepository)
 const categoryHandlers = createCategoryHandlers(categoryService)
 const categoryRouter = createCategoryRouter(categoryHandlers)
-const userService = createUserService(userRepository, { hashPassword, checkPassword })
-const userHandlers = createUserHandlers(userService)
+const authService = createAuthService(
+    userRepository,
+    { hash: hashPassword, verify: checkPassword },
+    { signAccessToken }
+)
+const userHandlers = createUserHandlers(authService)
 const userRouter = createUserRouter(userHandlers)
 
 app.use("/posts", postRouter)
