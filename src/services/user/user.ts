@@ -26,10 +26,23 @@ export function createAuthService(
 
             return {
                 user: { id: user.id, email: user.email },
-                tokens: {
-                    access: tokenService.signAccessToken(user.id)
-                },
+                accessToken: tokenService.signAccessToken(user.id),   
+                refreshToken: tokenService.signRefreshToken(user.id), 
             }
         },
+
+        async refresh(refreshToken) {
+            const userId = tokenService.verifyRefreshToken(refreshToken)
+            const user = await repository.getUserById(userId)
+
+            if (!user) {
+                throw new Error("INVALID REFRESH TOKEN")
+            }
+
+            return {
+                accessToken: tokenService.signAccessToken(userId),
+                refreshToken: tokenService.signRefreshToken(userId),
+            }
+        }
     }
 }

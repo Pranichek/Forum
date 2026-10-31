@@ -7,6 +7,7 @@ export function createUserRouter(handlers: UserHandlers) {
 
     router.post("/register", handlers.register)
     router.post("/login", handlers.login)
+    router.post("/refresh", handlers.refresh)
 
     return router
 }

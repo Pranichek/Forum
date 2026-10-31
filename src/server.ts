@@ -1,4 +1,5 @@
 import express from "express"
+import cookieParser from "cookie-parser"
 import { createPostRepository } from "./repositories/post"
 import { createPostService } from "./services/post/post"
 import { createPostHandlers } from "./transport/handlers/post"
@@ -13,10 +14,11 @@ import { createAuthService } from "./services/user/user"
 import { createUserHandlers } from "./transport/handlers/user"
 import { createUserRouter } from "./transport/routers/user"
 import { db } from "./prisma/db"
-import { signAccessToken } from "./lib/token"
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./lib/token"
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())  
 
 const postRepository = createPostRepository(db)
 const categoryRepository = createCategoryRepository(db)
@@ -32,7 +34,7 @@ const categoryRouter = createCategoryRouter(categoryHandlers)
 const authService = createAuthService(
     userRepository,
     { hash: hashPassword, verify: checkPassword },
-    { signAccessToken }
+    { signAccessToken, signRefreshToken, verifyRefreshToken }
 )
 const userHandlers = createUserHandlers(authService)
 const userRouter = createUserRouter(userHandlers)
