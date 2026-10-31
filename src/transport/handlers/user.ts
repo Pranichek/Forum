@@ -8,6 +8,7 @@ import type { ErrorDto } from "../dto/post/errors"
 export interface UserHandlers {
     register(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
     login(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
+    refresh(req: Request, res: Response<{ message: string }>): Promise<void>
 }
 
 export function createUserHandlers(authService: AuthService): UserHandlers {
@@ -64,16 +65,25 @@ export function createUserHandlers(authService: AuthService): UserHandlers {
             }
 
             try {
-                const { tokens, user } = await authService.login({
+                const { user, accessToken, refreshToken } = await authService.login({
                     email: email,
                     password: password,
                 })
 
-                res.cookie("accessToken", tokens.access, {
+                res.cookie("accessToken", accessToken, {
+                    httpOnly: true,                                   
+                    secure: process.env.NODE_ENV === "production",   
+                    sameSite: "lax",                                 
+                    maxAge: 15 * 60 * 1000,                          
+                    path: "/",                                       
+                })
+
+                res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
                     sameSite: "lax",
-                    path: "/",
-                    maxAge: 15 * 60 * 1000,
+                    maxAge: Number(process.env.TOKEN_REFRESH_TIME) * 1000,
+                    path: "/auth",                                   
                 })
 
                 res.status(200).json(user)
@@ -89,5 +99,45 @@ export function createUserHandlers(authService: AuthService): UserHandlers {
                 res.status(500).json({ message: "Internal server error" })
             }
         },
+        async refresh(req, res) {
+            const refreshToken = req.cookies.refreshToken
+
+            if (typeof refreshToken !== "string") {
+                res.status(401).json({ message: "Unauthorized" })
+                return
+            }
+
+            try {
+                const tokens = await authService.refresh(refreshToken)
+
+                res.cookie("accessToken", tokens.accessToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: 15 * 60 * 1000,
+                    path: "/",
+                })
+
+                res.cookie("refreshToken", tokens.refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: Number(process.env.TOKEN_REFRESH_TIME) * 1000,
+                    path: "/auth",
+                })
+
+                res.status(200).json({ message: "success" })
+            } catch (error) {
+                if (error instanceof Error) {
+                    if (error.message === "INVALID REFRESH TOKEN") {
+                        res.status(401).json({ message: "Unauthorized" })
+                        return
+                    }
+                }
+
+                console.log(error)
+                res.status(500).json({ message: "Internal server error" })
+            }
+        }
     }
 }

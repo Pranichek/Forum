@@ -12,14 +12,19 @@ export interface PasswordHasher {
 
 export interface TokenService {
     signAccessToken(userId: number): string
+    signRefreshToken(userId: number): string
+    verifyRefreshToken(token: string): number
 }
 
 export interface AuthService {
     register(input: AuthInput): Promise<PublicUser>
     login(input: AuthInput): Promise<{
         user: PublicUser
-        tokens: {
-            access: string
-        }
+        accessToken: string
+        refreshToken: string
+    }>
+    refresh(refreshToken: string): Promise<{
+        accessToken: string
+        refreshToken: string
     }>
 }
