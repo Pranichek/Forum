@@ -11,4 +11,5 @@ export interface PostService {
     getPosts(category: string | undefined, take: number | undefined): Promise<PostWithCategory[]>
     getPost(id: number): Promise<PostWithCategory | null>
     createPost(data: CreatePostInput): Promise<Post | null>
+    getMyPosts(authorId: number): Promise<PostWithCategory[]>
 }

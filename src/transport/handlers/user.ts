@@ -9,6 +9,7 @@ export interface UserHandlers {
     register(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
     login(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
     refresh(req: Request, res: Response<{ message: string }>): Promise<void>
+    me(req: Request, res: Response<UserResponse | ErrorDto>): Promise<void>
 }
 
 export function createUserHandlers(authService: AuthService): UserHandlers {
@@ -138,6 +139,23 @@ export function createUserHandlers(authService: AuthService): UserHandlers {
                 console.log(error)
                 res.status(500).json({ message: "Internal server error" })
             }
-        }
+        },
+        async me(req, res) {
+            const userId = res.locals.userId
+
+            try {
+                const user = await authService.me(userId)
+                res.status(200).json(user)
+            } catch (error) {
+                if (error instanceof Error) {
+                    if (error.message === "User not found") {
+                        res.status(404).json({ message: "Користувача не знайдено" })
+                        return
+                    }
+                }
+
+                res.status(500).json({ message: "Internal server error" })
+            }
+        },
     }
 }

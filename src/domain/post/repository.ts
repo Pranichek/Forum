@@ -4,4 +4,5 @@ export interface PostRepository {
     getAll(category: string | undefined, take: number | undefined): Promise<PostWithCategory[]>
     getById(id: number): Promise<PostWithCategory | null>
     addPost(data: CreatePostData): Promise<Post>
+    getByAuthorId(authorId: number): Promise<PostWithCategory[]>
 }

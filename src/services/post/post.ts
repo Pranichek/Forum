@@ -26,5 +26,8 @@ export function createPostService(
       const newPost = await postRepository.addPost(data)
       return newPost
     },
+    getMyPosts(authorId) {
+      return postRepository.getByAuthorId(authorId)
+    },
   }
 }

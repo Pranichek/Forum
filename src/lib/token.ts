@@ -54,3 +54,28 @@ export function verifyRefreshToken(token: string): number {
         throw new Error("INVALID REFRESH TOKEN")
     }
 }
+
+
+export function verifyAccessToken(token: string): number {
+    const secretKey = process.env.JWT_ACCESS_KEY
+    if (!secretKey) {
+        throw new Error("secret key not found")
+    }
+
+    try {
+        const payload = jwt.verify(token, secretKey, { algorithms: ["HS256"] })
+
+        if (typeof payload === "string" || typeof payload.sub !== "string") {
+            throw new Error()
+        }
+
+        const userId = Number(payload.sub)
+        if (!Number.isSafeInteger(userId) || userId <= 0) {
+            throw new Error()
+        }
+
+        return userId
+    } catch (error) {
+        throw new Error("INVALID ACCESS TOKEN")
+    }
+}

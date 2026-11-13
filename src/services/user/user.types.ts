@@ -23,6 +23,7 @@ export interface AuthService {
         accessToken: string
         refreshToken: string
     }>
+    me(userId: number): Promise<PublicUser>
     refresh(refreshToken: string): Promise<{
         accessToken: string
         refreshToken: string
