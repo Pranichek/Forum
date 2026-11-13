@@ -43,6 +43,16 @@ export function createAuthService(
                 accessToken: tokenService.signAccessToken(userId),
                 refreshToken: tokenService.signRefreshToken(userId),
             }
-        }
+        },
+        async me(id) {
+            const user = await repository.getUserById(id)
+
+            if (!user) {
+                throw new Error("User not found")
+            }
+
+            const { hashPassword, ...publicUser } = user
+            return publicUser
+        },
     }
 }

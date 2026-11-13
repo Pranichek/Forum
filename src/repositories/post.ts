@@ -41,5 +41,13 @@ export function createPostRepository(db: PostgresClient<Contract>): PostReposito
                 author: (author) => author.connect({ id: authorId }),
             })
         },
+
+        async getByAuthorId(authorId) {
+            return await db.orm.public.Post
+                .include("category")                                          
+                .include("author", (author) => author.select("id", "email"))  
+                .where({ authorId: authorId })                                
+                .all()                                                     
+        },
     }
 }

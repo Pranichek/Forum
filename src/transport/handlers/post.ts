@@ -8,6 +8,7 @@ export interface PostHandlers {
     getPosts(req: Request<{}, PostResponse[] | ErrorDto, {}, GetPosts>, res: Response<PostResponse[] | ErrorDto>): Promise<void>
     getPost(req: Request<PostParams>, res: Response<PostResponse | ErrorDto>): Promise<void>
     createPost(req: Request<{}, PostResponse | ErrorDto, CreatePost>,res: Response<PostResponse | ErrorDto>): Promise<void>
+    getMyPosts(req: Request, res: Response<PostResponse[] | ErrorDto>): Promise<void>
 }
 
 export function createPostHandlers(postService: PostService): PostHandlers {
@@ -77,7 +78,18 @@ export function createPostHandlers(postService: PostService): PostHandlers {
                 console.log(error)
                 res.status(500).json({ message: "Internal server error" })
             }
-        }
+        },
+        async getMyPosts(req, res) {
+            const authorId = res.locals.userId
+
+            try {
+                const posts = await postService.getMyPosts(authorId)
+                res.status(200).json(posts)
+            } catch (error) {
+                console.log(error)
+                res.status(500).json({ message: "Internal server error" })
+            }
+        },
     }
 }
 

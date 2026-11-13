@@ -14,11 +14,15 @@ import { createAuthService } from "./services/user/user"
 import { createUserHandlers } from "./transport/handlers/user"
 import { createUserRouter } from "./transport/routers/user"
 import { db } from "./prisma/db"
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./lib/token"
+import { signAccessToken, signRefreshToken, verifyRefreshToken, verifyAccessToken } from "./lib/token"
+import { createRequireAuth } from "./middlewares/requireAuth"
+
 
 const app = express()
 app.use(express.json())
 app.use(cookieParser())  
+
+const requireAuth = createRequireAuth(verifyAccessToken)
 
 const postRepository = createPostRepository(db)
 const categoryRepository = createCategoryRepository(db)
@@ -26,7 +30,8 @@ const userRepository = createUserRepository(db)
 
 const postService = createPostService(postRepository, categoryRepository)
 const postHandlers = createPostHandlers(postService)
-const postRouter = createPostRouter(postHandlers)
+const postRouter = createPostRouter(postHandlers, requireAuth)
+
 
 const categoryService = createCategoryService(categoryRepository)
 const categoryHandlers = createCategoryHandlers(categoryService)
@@ -37,7 +42,8 @@ const authService = createAuthService(
     { signAccessToken, signRefreshToken, verifyRefreshToken }
 )
 const userHandlers = createUserHandlers(authService)
-const userRouter = createUserRouter(userHandlers)
+const userRouter = createUserRouter(userHandlers, requireAuth)
+
 
 app.use("/posts", postRouter)
 app.use("/categories", categoryRouter)
