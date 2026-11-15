@@ -17,8 +17,12 @@ import { db } from "./prisma/db"
 import { signAccessToken, signRefreshToken, verifyRefreshToken, verifyAccessToken } from "./lib/token"
 import { createRequireAuth } from "./middlewares/requireAuth"
 
+import cors from "cors"
 
 const app = express()
+
+app.use(cors({ origin: "http://localhost:5173" }))
+
 app.use(express.json())
 app.use(cookieParser())  
 
