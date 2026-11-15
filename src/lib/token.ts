@@ -12,7 +12,7 @@ export function signAccessToken(userId: number): string {
     const token = jwt.sign({}, secretKey, {
         algorithm: "HS256",
         subject: String(userId),
-        expiresIn: 15 * 60,
+        expiresIn: Number(process.env.TOKEN_ACCESS_TIME)
     })
 
     return token
