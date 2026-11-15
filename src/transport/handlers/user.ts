@@ -75,7 +75,7 @@ export function createUserHandlers(authService: AuthService): UserHandlers {
                     httpOnly: true,                                   
                     secure: process.env.NODE_ENV === "production",   
                     sameSite: "lax",                                 
-                    maxAge: 15 * 60 * 1000,                          
+                    maxAge: Number(process.env.TOKEN_ACCESS_TIME) * 1000,             
                     path: "/",                                       
                 })
 
@@ -115,7 +115,7 @@ export function createUserHandlers(authService: AuthService): UserHandlers {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === "production",
                     sameSite: "lax",
-                    maxAge: 15 * 60 * 1000,
+                    maxAge: Number(process.env.TOKEN_ACCESS_TIME) * 1000,  
                     path: "/",
                 })
 

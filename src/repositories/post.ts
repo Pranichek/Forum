@@ -34,12 +34,15 @@ export function createPostRepository(db: PostgresClient<Contract>): PostReposito
             const categoryId = data.categoryId
             const authorId = data.authorId
 
-            return await db.orm.public.Post.create({
-                title: data.title,
-                content: data.content,
-                category: (category) => category.connect({ id: categoryId }),
-                author: (author) => author.connect({ id: authorId }),
-            })
+            return await db.orm.public.Post
+                .include("category")                                         
+                .include("author", (author) => author.select("id", "email"))  
+                .create({
+                    title: data.title,
+                    content: data.content,
+                    category: (category) => category.connect({ id: categoryId }),
+                    author: (author) => author.connect({ id: authorId }),
+                })
         },
 
         async getByAuthorId(authorId) {
