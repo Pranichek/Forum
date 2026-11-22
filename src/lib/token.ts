@@ -1,5 +1,6 @@
 import "dotenv/config"
 import jwt from "jsonwebtoken"
+import { createHash, randomUUID } from "node:crypto"
 
 
 export function signAccessToken(userId: number): string {
@@ -18,6 +19,7 @@ export function signAccessToken(userId: number): string {
     return token
 }
 
+
 export function signRefreshToken(userId: number): string {
     const refreshSecret = process.env.JWT_REFRESH_KEY
     if (!refreshSecret) { 
@@ -27,7 +29,8 @@ export function signRefreshToken(userId: number): string {
     const token = jwt.sign({ type: "refresh" }, refreshSecret, {
         algorithm: "HS256",                                 
         subject: String(userId),                             
-        expiresIn: Number(process.env.TOKEN_REFRESH_TIME)     
+        expiresIn: Number(process.env.TOKEN_REFRESH_TIME),
+        jwtid: randomUUID() 
     })
     return token
 }
@@ -78,4 +81,9 @@ export function verifyAccessToken(token: string): number {
     } catch (error) {
         throw new Error("INVALID ACCESS TOKEN")
     }
+}
+
+export function hashRefreshToken(token: string): string {
+    const hash = createHash("sha256").update(token).digest("hex")
+    return hash
 }

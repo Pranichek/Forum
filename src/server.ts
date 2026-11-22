@@ -1,5 +1,6 @@
 import express from "express"
 import cookieParser from "cookie-parser"
+import "temporal-polyfill/full/global"
 import { createPostRepository } from "./repositories/post"
 import { createPostService } from "./services/post/post"
 import { createPostHandlers } from "./transport/handlers/post"
@@ -14,8 +15,9 @@ import { createAuthService } from "./services/user/user"
 import { createUserHandlers } from "./transport/handlers/user"
 import { createUserRouter } from "./transport/routers/user"
 import { db } from "./prisma/db"
-import { signAccessToken, signRefreshToken, verifyRefreshToken, verifyAccessToken } from "./lib/token"
+import { signAccessToken, signRefreshToken, verifyRefreshToken, verifyAccessToken, hashRefreshToken } from "./lib/token"
 import { createRequireAuth } from "./middlewares/requireAuth"
+import { createRefreshSessionRepository } from "./repositories/refreshSession"
 
 import cors from "cors"
 
@@ -31,6 +33,7 @@ const requireAuth = createRequireAuth(verifyAccessToken)
 const postRepository = createPostRepository(db)
 const categoryRepository = createCategoryRepository(db)
 const userRepository = createUserRepository(db)
+const refreshSessionRepository = createRefreshSessionRepository(db)
 
 const postService = createPostService(postRepository, categoryRepository)
 const postHandlers = createPostHandlers(postService)
@@ -43,7 +46,8 @@ const categoryRouter = createCategoryRouter(categoryHandlers)
 const authService = createAuthService(
     userRepository,
     { hash: hashPassword, verify: checkPassword },
-    { signAccessToken, signRefreshToken, verifyRefreshToken }
+    { signAccessToken, signRefreshToken, verifyRefreshToken, hashRefreshToken },
+    refreshSessionRepository
 )
 const userHandlers = createUserHandlers(authService)
 const userRouter = createUserRouter(userHandlers, requireAuth)

@@ -14,6 +14,7 @@ export interface TokenService {
     signAccessToken(userId: number): string
     signRefreshToken(userId: number): string
     verifyRefreshToken(token: string): number
+    hashRefreshToken(token: string): string
 }
 
 export interface AuthService {
@@ -28,4 +29,5 @@ export interface AuthService {
         accessToken: string
         refreshToken: string
     }>
+    logout(refreshToken: string): Promise<void>
 }
