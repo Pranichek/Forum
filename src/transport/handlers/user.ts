@@ -9,6 +9,7 @@ export interface UserHandlers {
     register(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
     login(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
     refresh(req: Request, res: Response<{ message: string }>): Promise<void>
+    logout(req: Request, res: Response<{ message: string }>): Promise<void>
     me(req: Request, res: Response<UserResponse | ErrorDto>): Promise<void>
 }
 
@@ -140,6 +141,24 @@ export function createUserHandlers(authService: AuthService): UserHandlers {
                 res.status(500).json({ message: "Internal server error" })
             }
         },
+        async logout(req, res) {
+            const refreshToken = req.cookies.refreshToken
+
+            try {
+                if (typeof refreshToken == "string") {
+                    await authService.logout(refreshToken)
+                }
+
+                res.clearCookie("accessToken", { path: "/" })
+                res.clearCookie("refreshToken", { path: "/auth" })
+
+                res.status(200).json({ message: "ok" })
+            } catch (error) {
+                console.log(error)
+                res.status(500).json({ message: "Internal server error" })
+            }
+        },
+
         async me(req, res) {
             const userId = res.locals.userId
 
