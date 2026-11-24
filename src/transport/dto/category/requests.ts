@@ -1,7 +1,7 @@
 export interface CreateCategoryBody {
-    name: string
+	name: string;
 }
 
 export interface CategoryParams {
-    id: string
+	id: string;
 }

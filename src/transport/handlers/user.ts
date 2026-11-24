@@ -1,180 +1,180 @@
-import type { Request, Response } from "express"
-import type { AuthService } from "../../services/user/user.types"
-import type { RegisterBody } from "../dto/user/requests"
-import type { UserResponse } from "../dto/user/responses"
-import type { ErrorDto } from "../dto/post/errors"
-
+import type { RequestHandler } from "express";
+import type { ParamsDictionary } from "express-serve-static-core";
+import type { AuthService } from "../../services/user/user.types";
+import {
+	clearAuthCookies,
+	getRefreshToken,
+	setAuthCookies,
+} from "../cookie/authCookie";
+import type { ErrorDto } from "../dto/common/errors";
+import type { MessageDto } from "../dto/common/responses";
+import type { RegisterBody } from "../dto/user/requests";
+import type { UserResponse } from "../dto/user/responses";
 
 export interface UserHandlers {
-    register(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
-    login(req: Request<{}, {}, RegisterBody>, res: Response<UserResponse | ErrorDto>): Promise<void>
-    refresh(req: Request, res: Response<{ message: string }>): Promise<void>
-    logout(req: Request, res: Response<{ message: string }>): Promise<void>
-    me(req: Request, res: Response<UserResponse | ErrorDto>): Promise<void>
+	register: RequestHandler<
+		ParamsDictionary,
+		UserResponse | ErrorDto,
+		RegisterBody
+	>;
+	login: RequestHandler<
+		ParamsDictionary,
+		UserResponse | ErrorDto,
+		RegisterBody
+	>;
+	refresh: RequestHandler<ParamsDictionary, MessageDto>;
+	logout: RequestHandler<ParamsDictionary, MessageDto>;
+	me: RequestHandler<ParamsDictionary, UserResponse | ErrorDto>;
 }
 
 export function createUserHandlers(authService: AuthService): UserHandlers {
-    return {
-        async register(req, res) {
-            if (!req.body) {
-                res.status(400).json({ message: "Тіло запиту має бути JSON" })
-                return
-            }
+	return {
+		async register(req, res) {
+			if (!req.body) {
+				res.status(400).json({ message: "Тіло запиту має бути JSON" });
+				return;
+			}
 
-            const { email, password } = req.body
+			const { email, password } = req.body;
 
-            if (typeof email !== "string" || !email.includes("@")) {
-                res.status(422).json({ message: "Неправильний email" })
-                return
-            }
+			if (typeof email !== "string" || !email.includes("@")) {
+				res.status(422).json({ message: "Неправильний email" });
+				return;
+			}
 
-            if (typeof password !== "string" || password.length < 6) {
-                res.status(422).json({ message: "password має бути рядком мінімум з 6 символів" })
-                return
-            }
+			if (typeof password !== "string" || password.length < 6) {
+				res
+					.status(422)
+					.json({ message: "password має бути рядком мінімум з 6 символів" });
+				return;
+			}
 
-            try {
-                const newUser = await authService.register({
-                    email: email,
-                    password: password,
-                })
+			try {
+				const newUser = await authService.register({
+					email: email,
+					password: password,
+				});
 
-                res.status(201).json(newUser)
-            } catch (error) {
-                if (error instanceof Error) {
-                    if (error.message === "BUSY_EMAIL") {
-                        res.status(409).json({ message: "Користувач з таким email вже існує" })
-                        return
-                    }
-                }
+				res.status(201).json(newUser);
+			} catch (error) {
+				if (error instanceof Error) {
+					if (error.message === "BUSY_EMAIL") {
+						res
+							.status(409)
+							.json({ message: "Користувач з таким email вже існує" });
+						return;
+					}
+				}
 
-                console.log(error)
-                res.status(500).json({ message: "Internal server error" })
-            }
-        },
+				console.log(error);
+				res.status(500).json({ message: "Internal server error" });
+			}
+		},
 
-        async login(req, res) {
-            if (!req.body) {
-                res.status(400).json({ message: "Тіло запиту має бути JSON" })
-                return
-            }
+		async login(req, res) {
+			if (!req.body) {
+				res.status(400).json({ message: "Тіло запиту має бути JSON" });
+				return;
+			}
 
-            const { email, password } = req.body
+			const { email, password } = req.body;
 
-            if (typeof email !== "string" || typeof password !== "string") {
-                res.status(422).json({ message: "email та password обов'язкові" })
-                return
-            }
+			if (typeof email !== "string" || typeof password !== "string") {
+				res.status(422).json({ message: "email та password обов'язкові" });
+				return;
+			}
 
-            try {
-                const { user, accessToken, refreshToken } = await authService.login({
-                    email: email,
-                    password: password,
-                })
+			try {
+				const { user, accessToken, refreshToken } = await authService.login({
+					email: email,
+					password: password,
+				});
 
-                res.cookie("accessToken", accessToken, {
-                    httpOnly: true,                                   
-                    secure: process.env.NODE_ENV === "production",   
-                    sameSite: "lax",                                 
-                    maxAge: Number(process.env.TOKEN_ACCESS_TIME) * 1000,             
-                    path: "/",                                       
-                })
+				setAuthCookies(res, {
+					accessToken: accessToken,
+					refreshToken: refreshToken,
+				});
 
-                res.cookie("refreshToken", refreshToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "lax",
-                    maxAge: Number(process.env.TOKEN_REFRESH_TIME) * 1000,
-                    path: "/auth",                                   
-                })
+				res.status(200).json(user);
+			} catch (error) {
+				if (error instanceof Error) {
+					if (error.message === "INVALID_CREDENTIALS") {
+						res.status(401).json({ message: "невірний email або пароль" });
+						return;
+					}
+				}
 
-                res.status(200).json(user)
-            } catch (error) {
-                if (error instanceof Error) {
-                    if (error.message === "INVALID_CREDENTIALS") {
-                        res.status(401).json({ message: "невірний email або пароль" })
-                        return
-                    }
-                }
+				console.log(error);
+				res.status(500).json({ message: "Internal server error" });
+			}
+		},
 
-                console.log(error)
-                res.status(500).json({ message: "Internal server error" })
-            }
-        },
-        async refresh(req, res) {
-            const refreshToken = req.cookies.refreshToken
+		async refresh(req, res) {
+			const refreshToken = getRefreshToken(req);
 
-            if (typeof refreshToken !== "string") {
-                res.status(401).json({ message: "Unauthorized" })
-                return
-            }
+			if (!refreshToken) {
+				res.status(401).json({ message: "Unauthorized" });
+				return;
+			}
 
-            try {
-                const tokens = await authService.refresh(refreshToken)
+			try {
+				const tokens = await authService.refresh(refreshToken);
 
-                res.cookie("accessToken", tokens.accessToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "lax",
-                    maxAge: Number(process.env.TOKEN_ACCESS_TIME) * 1000,  
-                    path: "/",
-                })
+				setAuthCookies(res, tokens);
 
-                res.cookie("refreshToken", tokens.refreshToken, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "lax",
-                    maxAge: Number(process.env.TOKEN_REFRESH_TIME) * 1000,
-                    path: "/auth",
-                })
+				res.status(200).json({ message: "success" });
+			} catch (error) {
+				if (error instanceof Error) {
+					if (error.message === "INVALID REFRESH TOKEN") {
+						res.status(401).json({ message: "Unauthorized" });
+						return;
+					}
+				}
 
-                res.status(200).json({ message: "success" })
-            } catch (error) {
-                if (error instanceof Error) {
-                    if (error.message === "INVALID REFRESH TOKEN") {
-                        res.status(401).json({ message: "Unauthorized" })
-                        return
-                    }
-                }
+				console.log(error);
+				res.status(500).json({ message: "Internal server error" });
+			}
+		},
 
-                console.log(error)
-                res.status(500).json({ message: "Internal server error" })
-            }
-        },
-        async logout(req, res) {
-            const refreshToken = req.cookies.refreshToken
+		async logout(req, res) {
+			const refreshToken = getRefreshToken(req);
 
-            try {
-                if (typeof refreshToken == "string") {
-                    await authService.logout(refreshToken)
-                }
+			try {
+				if (refreshToken) {
+					await authService.logout(refreshToken);
+				}
 
-                res.clearCookie("accessToken", { path: "/" })
-                res.clearCookie("refreshToken", { path: "/auth" })
+				clearAuthCookies(res);
 
-                res.status(200).json({ message: "ok" })
-            } catch (error) {
-                console.log(error)
-                res.status(500).json({ message: "Internal server error" })
-            }
-        },
+				res.status(200).json({ message: "ok" });
+			} catch (error) {
+				console.log(error);
+				res.status(500).json({ message: "Internal server error" });
+			}
+		},
 
-        async me(req, res) {
-            const userId = res.locals.userId
+		async me(_req, res) {
+			const userId = res.locals.userId;
 
-            try {
-                const user = await authService.me(userId)
-                res.status(200).json(user)
-            } catch (error) {
-                if (error instanceof Error) {
-                    if (error.message === "User not found") {
-                        res.status(404).json({ message: "Користувача не знайдено" })
-                        return
-                    }
-                }
+			if (userId === undefined) {
+				res.status(401).json({ message: "Unauthorized" });
+				return;
+			}
 
-                res.status(500).json({ message: "Internal server error" })
-            }
-        },
-    }
+			try {
+				const user = await authService.me(userId);
+				res.status(200).json(user);
+			} catch (error) {
+				if (error instanceof Error) {
+					if (error.message === "User not found") {
+						res.status(404).json({ message: "Користувача не знайдено" });
+						return;
+					}
+				}
+
+				console.log(error);
+				res.status(500).json({ message: "Internal server error" });
+			}
+		},
+	};
 }

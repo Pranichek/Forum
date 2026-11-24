@@ -1,15 +1,15 @@
 export interface GetPosts {
-  category: string;
-  take: string;
+	category: string;
+	take: string;
 }
 
 export interface PostParams {
-  id: string;
+	id: string;
 }
 
 export interface CreatePost {
-    title: string
-    content: string
-    categoryId: number
-    authorId: number
+	title: string;
+	content: string;
+	categoryId: number;
+	authorId: number;
 }
