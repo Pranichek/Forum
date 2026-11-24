@@ -1,22 +1,23 @@
-import type { RequestHandler } from "express"
+import type { RequestHandler } from "express";
+import type { TokenService } from "../services/user/user.types";
+import { getAccessToken } from "../transport/cookie/authCookie";
 
+export function createRequireAuth(tokenService: TokenService): RequestHandler {
+	return (req, res, next) => {
+		const accessToken = getAccessToken(req);
 
-export function createRequireAuth(verifyAccessToken: (token: string) => number): RequestHandler {
-    return (req, res, next) => {
-        const accessToken = req.cookies.accessToken
+		if (!accessToken) {
+			res.status(401).json({ message: "Unauthorized" });
+			return;
+		}
 
-        if (typeof accessToken !== "string") {
-            res.status(401).json({ message: "Unauthorized" })
-            return
-        }
+		try {
+			const userId = tokenService.verifyAccessToken(accessToken);
+			res.locals.userId = userId;
 
-        try {
-            const userId = verifyAccessToken(accessToken)
-            res.locals.userId = userId
-
-            next()
-        } catch (error) {
-            res.status(401).json({ message: "Unauthorized" })
-        }
-    }
+			next();
+		} catch {
+			res.status(401).json({ message: "Unauthorized" });
+		}
+	};
 }

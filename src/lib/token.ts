@@ -1,89 +1,85 @@
-import "dotenv/config"
-import jwt from "jsonwebtoken"
-import { createHash, randomUUID } from "node:crypto"
+import jwt from "jsonwebtoken";
+import { createHash, randomUUID } from "node:crypto";
+import type { TokenService } from "../services/user/user.types";
 
-
-export function signAccessToken(userId: number): string {
-    const secretKey = process.env.JWT_ACCESS_KEY
-
-    if (!secretKey) {
-        throw new Error("secret key not found")
-    }
-
-    const token = jwt.sign({}, secretKey, {
-        algorithm: "HS256",
-        subject: String(userId),
-        expiresIn: Number(process.env.TOKEN_ACCESS_TIME)
-    })
-
-    return token
+export interface TokenOptions {
+	accessSecret: string;
+	refreshSecret: string;
+	accessTime: number;
+	refreshTime: number;
 }
 
+export function createTokenService(options: TokenOptions): TokenService {
+	return {
+		signAccessToken(userId) {
+			const token = jwt.sign({}, options.accessSecret, {
+				algorithm: "HS256",
+				subject: String(userId),
+				expiresIn: options.accessTime,
+			});
 
-export function signRefreshToken(userId: number): string {
-    const refreshSecret = process.env.JWT_REFRESH_KEY
-    if (!refreshSecret) { 
-        throw new Error("refresh secret key not found") 
-    }
+			return token;
+		},
 
-    const token = jwt.sign({ type: "refresh" }, refreshSecret, {
-        algorithm: "HS256",                                 
-        subject: String(userId),                             
-        expiresIn: Number(process.env.TOKEN_REFRESH_TIME),
-        jwtid: randomUUID() 
-    })
-    return token
-}
+		signRefreshToken(userId) {
+			const token = jwt.sign({ type: "refresh" }, options.refreshSecret, {
+				algorithm: "HS256",
+				subject: String(userId),
+				expiresIn: options.refreshTime,
+				jwtid: randomUUID(),
+			});
+			return token;
+		},
 
+		verifyRefreshToken(token) {
+			try {
+				const payload = jwt.verify(token, options.refreshSecret, {
+					algorithms: ["HS256"],
+				});
 
-export function verifyRefreshToken(token: string): number {
-    const refreshSecret = process.env.JWT_REFRESH_KEY
-    if (!refreshSecret) { throw new Error("refresh secret key not found") }
+				if (
+					typeof payload === "string" ||
+					payload.type !== "refresh" ||
+					typeof payload.sub !== "string"
+				) {
+					throw new Error();
+				}
 
-    try {
-        const payload = jwt.verify(token, refreshSecret, { algorithms: ["HS256"] })
+				const userId = Number(payload.sub);
+				if (!Number.isSafeInteger(userId) || userId <= 0) {
+					throw new Error();
+				}
 
-        if (typeof payload === "string" || payload.type !== "refresh" || typeof payload.sub !== "string") {
-            throw new Error()
-        }
+				return userId;
+			} catch {
+				throw new Error("INVALID REFRESH TOKEN");
+			}
+		},
 
-        const userId = Number(payload.sub)
-        if (!Number.isSafeInteger(userId) || userId <= 0) {
-            throw new Error()
-        }
+		verifyAccessToken(token) {
+			try {
+				const payload = jwt.verify(token, options.accessSecret, {
+					algorithms: ["HS256"],
+				});
 
-        return userId
-    } catch (error) {
-        throw new Error("INVALID REFRESH TOKEN")
-    }
-}
+				if (typeof payload === "string" || typeof payload.sub !== "string") {
+					throw new Error();
+				}
 
+				const userId = Number(payload.sub);
+				if (!Number.isSafeInteger(userId) || userId <= 0) {
+					throw new Error();
+				}
 
-export function verifyAccessToken(token: string): number {
-    const secretKey = process.env.JWT_ACCESS_KEY
-    if (!secretKey) {
-        throw new Error("secret key not found")
-    }
+				return userId;
+			} catch {
+				throw new Error("INVALID ACCESS TOKEN");
+			}
+		},
 
-    try {
-        const payload = jwt.verify(token, secretKey, { algorithms: ["HS256"] })
-
-        if (typeof payload === "string" || typeof payload.sub !== "string") {
-            throw new Error()
-        }
-
-        const userId = Number(payload.sub)
-        if (!Number.isSafeInteger(userId) || userId <= 0) {
-            throw new Error()
-        }
-
-        return userId
-    } catch (error) {
-        throw new Error("INVALID ACCESS TOKEN")
-    }
-}
-
-export function hashRefreshToken(token: string): string {
-    const hash = createHash("sha256").update(token).digest("hex")
-    return hash
+		hashRefreshToken(token) {
+			const hash = createHash("sha256").update(token).digest("hex");
+			return hash;
+		},
+	};
 }

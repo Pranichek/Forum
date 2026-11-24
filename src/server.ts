@@ -1,65 +1,9 @@
-import express from "express"
-import cookieParser from "cookie-parser"
-import "temporal-polyfill/full/global"
-import { createPostRepository } from "./repositories/post"
-import { createPostService } from "./services/post/post"
-import { createPostHandlers } from "./transport/handlers/post"
-import { createPostRouter } from "./transport/routers/post"
-import { createCategoryRepository } from "./repositories/category"
-import { createCategoryService } from "./services/category/category"
-import { createCategoryHandlers } from "./transport/handlers/category"
-import { createCategoryRouter } from "./transport/routers/category"
-import { hashPassword, checkPassword } from "./lib/password"
-import { createUserRepository } from "./repositories/user"
-import { createAuthService } from "./services/user/user"
-import { createUserHandlers } from "./transport/handlers/user"
-import { createUserRouter } from "./transport/routers/user"
-import { db } from "./prisma/db"
-import { signAccessToken, signRefreshToken, verifyRefreshToken, verifyAccessToken, hashRefreshToken } from "./lib/token"
-import { createRequireAuth } from "./middlewares/requireAuth"
-import { createRefreshSessionRepository } from "./repositories/refreshSession"
+import "temporal-polyfill/full/global";
+import { createApp } from "./app";
+import { CONFIG } from "./config";
 
-import cors from "cors"
+const app = createApp();
 
-const app = express()
-
-app.use(cors({ origin: "http://localhost:5173" }))
-
-app.use(express.json())
-app.use(cookieParser())  
-
-const requireAuth = createRequireAuth(verifyAccessToken)
-
-const postRepository = createPostRepository(db)
-const categoryRepository = createCategoryRepository(db)
-const userRepository = createUserRepository(db)
-const refreshSessionRepository = createRefreshSessionRepository(db)
-
-const postService = createPostService(postRepository, categoryRepository)
-const postHandlers = createPostHandlers(postService)
-const postRouter = createPostRouter(postHandlers, requireAuth)
-
-
-const categoryService = createCategoryService(categoryRepository)
-const categoryHandlers = createCategoryHandlers(categoryService)
-const categoryRouter = createCategoryRouter(categoryHandlers)
-const authService = createAuthService(
-    userRepository,
-    { hash: hashPassword, verify: checkPassword },
-    { signAccessToken, signRefreshToken, verifyRefreshToken, hashRefreshToken },
-    refreshSessionRepository
-)
-const userHandlers = createUserHandlers(authService)
-const userRouter = createUserRouter(userHandlers, requireAuth)
-
-
-app.use("/posts", postRouter)
-app.use("/categories", categoryRouter)
-app.use("/auth", userRouter)
-
-const HOST = "localhost"
-const PORT = 3000
-
-app.listen(PORT, HOST, () => {
-    console.log(`Server: http://${HOST}:${PORT}`)
-})
+app.listen(CONFIG.port, CONFIG.host, () => {
+	console.log(`Server: http://${CONFIG.host}:${CONFIG.port}`);
+});
