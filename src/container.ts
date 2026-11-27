@@ -16,6 +16,10 @@ import { createUserHandlers } from "./transport/handlers/user";
 import { createCategoryRouter } from "./transport/routers/category";
 import { createPostRouter } from "./transport/routers/post";
 import { createUserRouter } from "./transport/routers/user";
+import { createCommentRepository } from "./repositories/comment";
+import { createCommentService } from "./services/comment/comment";
+import { createCommentHandlers } from "./transport/handlers/comments";
+import { createCommentRouter } from "./transport/routers/comments";
 
 export function createContainer() {
 	const db = createDb(CONFIG.databaseUrl);
@@ -33,9 +37,14 @@ export function createContainer() {
 	const userRepository = createUserRepository(db);
 	const refreshSessionRepository = createRefreshSessionRepository(db);
 
+	const commentRepository = createCommentRepository(db);
+	const commentService = createCommentService(commentRepository);
+	const CommentHandlers = createCommentHandlers(commentService);
+	const commentRouter = createCommentRouter(CommentHandlers, requireAuth)
+
 	const postService = createPostService(postRepository, categoryRepository);
 	const postHandlers = createPostHandlers(postService);
-	const postRouter = createPostRouter(postHandlers, requireAuth);
+	const postRouter = createPostRouter(postHandlers, CommentHandlers, requireAuth);
 
 	const categoryService = createCategoryService(categoryRepository);
 	const categoryHandlers = createCategoryHandlers(categoryService);
@@ -55,5 +64,6 @@ export function createContainer() {
 		postRouter: postRouter,
 		categoryRouter: categoryRouter,
 		userRouter: userRouter,
+		commentRouter: commentRouter
 	};
 }

@@ -14,6 +14,7 @@ export function createApp() {
 
 	const container = createContainer();
 
+	app.use(ROUTES.COMMENTS, container.commentRouter);
 	app.use(ROUTES.POSTS, container.postRouter);
 	app.use(ROUTES.CATEGORIES, container.categoryRouter);
 	app.use(ROUTES.AUTH, container.userRouter);

@@ -8,4 +8,5 @@ model Post {
   category   Category? @relation(fields: [categoryId], references: [id])
   authorId   Int?
   author     User?     @relation(fields: [authorId], references: [id])
+  comments Comment[]
 }
