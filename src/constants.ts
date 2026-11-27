@@ -2,6 +2,7 @@ export const ROUTES = {
 	POSTS: "/posts",
 	CATEGORIES: "/categories",
 	AUTH: "/auth",
+	COMMENTS: "/comments"
 };
 
 export const AUTH_ROUTES = {
@@ -16,7 +17,12 @@ export const POST_ROUTES = {
 	ALL: "/",
 	MY: "/my",
 	BY_ID: "/:id",
+	COMMENTS: "/:postId/comments"
 };
+
+export const COMMENT_ROUTERS = {
+	BY_ID: "/:commentId"
+}
 
 export const CATEGORY_ROUTES = {
 	ALL: "/",

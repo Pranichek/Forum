@@ -6,4 +6,5 @@ model User {
   hashPassword    String
   posts           Post[]
   refreshSessions RefreshSession[]
+  comments Comment[]
 }
